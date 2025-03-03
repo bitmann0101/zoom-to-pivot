@@ -18,10 +18,24 @@
           position: relative;
           overflow: hidden;
       }
+
+      .pivot-point {
+        width: 15px;
+        height: 15px;
+        background-color: rgb(0, 204, 255);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        display: none;
+      }
     </style>
 </head>
 <body>
-    <div class="full-screen" id="container"></div>
+    <div class="full-screen" id="container">
+        <div class="pivot-point" id="pivot-point"></div>
+    </div>
     <script type="module" src="main.ts"></script>
 </body>
 </html>

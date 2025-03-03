@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import * as OBC from "@thatopen-platform/components-beta";
 import Stats from "stats.js";
+import { cameraUpdate } from "./libs/camera-controls.helper";
 
 async function main() {
   // Set up scene
@@ -8,6 +9,7 @@ async function main() {
   const components = new OBC.Components();
   const worlds = components.get(OBC.Worlds);
   const container = document.getElementById("container") as HTMLDivElement;
+  const pivotPoint = document.getElementById("pivot-point") as HTMLDivElement;
 
   const world = worlds.create<
     OBC.SimpleScene,
@@ -80,12 +82,45 @@ async function main() {
   const casters = components.get(OBC.Raycasters);
   const caster = casters.get(world)
 
+  const containerBoudingBox = container.getBoundingClientRect();
+  const widthHalf = containerBoudingBox.width / 2;
+  const heightHalf = containerBoudingBox.height / 2;
+
+  const hidePivotPoint = () => {
+    pivotPoint.style.display = "none";
+  }
+
+  const showPivotPoint = (x: number, y: number) => {
+    pivotPoint.style.display = "block";
+    pivotPoint.style.left = x + "px";
+    pivotPoint.style.top = y + "px";
+  }
+
+  world.camera.controls['update'] = cameraUpdate
+
   // Create plane on click
-  container.ondblclick = async () => {
+  container.onpointerdown = async (event) => {
     const result = await caster.castRay();
-    console.log(result)
+    console.log(result, result?.point, event)
+    hidePivotPoint()
+    if(result && result.point && event.button === 0) {
+      world.camera.controls.setOrbitPoint(result.point.x, result.point.y, result.point.z);
+      
+      const projectPoint = result.point.clone().project(world.camera.three);
+      
+      let x = projectPoint.x * widthHalf + widthHalf
+      let y = - (projectPoint.y * heightHalf) + heightHalf
+      showPivotPoint(x, y)
+    }
   };
-  
+
+  container.onpointerup = () => {
+    hidePivotPoint()
+  }
+
+  container.onwheel = () => {
+    hidePivotPoint()
+  }
 }
 
 main();
