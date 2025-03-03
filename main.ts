@@ -101,7 +101,7 @@ async function main() {
   // Create plane on click
   container.onpointerdown = async (event) => {
     const result = await caster.castRay();
-    console.log(result, result?.point, event)
+
     hidePivotPoint()
     if(result && result.point && event.button === 0) {
       world.camera.controls.setOrbitPoint(result.point.x, result.point.y, result.point.z);
