@@ -1,0 +1,25 @@
+{
+  "name": "asdf",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite --host"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@thatopen-platform/components-beta": "^3.0.12",
+    "@thatopen-platform/components-front-beta": "^3.0.13",
+    "@thatopen-platform/fragments-beta": "^3.0.31",
+    "@thatopen-platform/ui-beta": "^3.0.0",
+    "stats.js": "^0.17.0",
+    "thatopen-services": "^0.5.5",
+    "three": "0.170.0",
+    "web-ifc": "^0.0.66"
+  },
+  "devDependencies": {
+    "vite": "^6.0.7"
+  }
+}
