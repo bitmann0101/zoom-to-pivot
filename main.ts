@@ -29,6 +29,8 @@ async function main() {
   world.scene.three.add(new THREE.AxesHelper());
 
   world.camera.three.far = 10000;
+  world.camera.three.near = 0.1;
+  world.camera.three.frustumCulled = false;
 
   // Get fragments model
 
@@ -82,10 +84,6 @@ async function main() {
   const casters = components.get(OBC.Raycasters);
   const caster = casters.get(world)
 
-  const containerBoudingBox = container.getBoundingClientRect();
-  const widthHalf = containerBoudingBox.width / 2;
-  const heightHalf = containerBoudingBox.height / 2;
-
   const hidePivotPoint = () => {
     pivotPoint.style.display = "none";
   }
@@ -97,13 +95,16 @@ async function main() {
   }
 
   world.camera.controls['update'] = cameraUpdate
+  world.camera.controls.minDistance = 0.01
 
   // Create plane on click
   container.onpointerdown = async (event) => {
     const result = await caster.castRay();
-
     hidePivotPoint()
     if(result && result.point && event.button === 0) {
+      const widthHalf = container.clientWidth / 2;
+      const heightHalf = container.clientHeight / 2;
+
       world.camera.controls.setOrbitPoint(result.point.x, result.point.y, result.point.z);
       
       const projectPoint = result.point.clone().project(world.camera.three);
