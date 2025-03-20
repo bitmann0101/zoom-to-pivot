@@ -2,13 +2,16 @@ import * as THREE from "three";
 import * as OBC from "@thatopen-platform/components-beta";
 import Stats from "stats.js";
 import { cameraUpdate } from "./libs/camera-controls.helper";
+import CloundMarkupEvent from "./events/cloundMarkup.event";
 
 const SELCTION_MODE = {
   DEFAULT: "DEFAULT",
   FUSTUM: "FUSTUM",
+  CLOUND_MARKUP: "CLOUND_MARKUP"
 }
 
 let seclectionMode = SELCTION_MODE.DEFAULT
+let isPickedPivotPoint = false
 
 async function main() {
   // Set up scene
@@ -94,14 +97,22 @@ async function main() {
   const casters = components.get(OBC.Raycasters);
   const caster = casters.get(world)
 
+  const cloundMarkupEvent = new CloundMarkupEvent(world, container, caster);
+
   const hidePivotPoint = () => {
+    isPickedPivotPoint = false
     pivotPoint.style.display = "none";
+    pivotPoint.style.zIndex = "-1";
   }
 
-  const showPivotPoint = (x: number, y: number) => {
-    pivotPoint.style.display = "block";
+  const setPivotPoint = (x: number, y: number) => {
     pivotPoint.style.left = x + "px";
     pivotPoint.style.top = y + "px";
+  }
+
+  const showPivotPoint = () => {
+    pivotPoint.style.display = "block";
+    pivotPoint.style.zIndex = "1000";
   }
 
   world.camera.controls['update'] = cameraUpdate
@@ -126,8 +137,9 @@ async function main() {
 
   // Create plane on click
   container.onpointerdown = async (event) => {
+  isPickedPivotPoint = false
     if(event.target && event.target['tagName'] !== "CANVAS") return
-    if(seclectionMode == SELCTION_MODE.DEFAULT) {
+    if(seclectionMode == SELCTION_MODE.DEFAULT || seclectionMode == SELCTION_MODE.CLOUND_MARKUP) {
       const result = await caster.castRay();
       hidePivotPoint()
       if(result && result.point && event.button === 0) {
@@ -140,7 +152,8 @@ async function main() {
         
         let x = projectPoint.x * widthHalf + widthHalf
         let y = - (projectPoint.y * heightHalf) + heightHalf
-        showPivotPoint(x, y)
+        setPivotPoint(x, y)
+        isPickedPivotPoint = true
       }
     } else if(seclectionMode == SELCTION_MODE.FUSTUM) {
       isStartDrawFrustum = true
@@ -149,6 +162,9 @@ async function main() {
   };
 
   container.onpointermove = (event) => {
+    if(isPickedPivotPoint && (seclectionMode == SELCTION_MODE.DEFAULT || seclectionMode == SELCTION_MODE.CLOUND_MARKUP)) {
+      showPivotPoint()
+    }
     if(seclectionMode == SELCTION_MODE.FUSTUM && isStartDrawFrustum) {
       frustumEndPoint = {clientX: event.clientX, clientY: event.clientY}
       updateFrustumRectangle()
@@ -165,10 +181,21 @@ async function main() {
   }
 
   container.onwheel = (event) => {
-    isStartDrawFrustum = false
-    onChangeMode(SELCTION_MODE.DEFAULT, null)
-    hidePivotPoint()
+    if(seclectionMode == SELCTION_MODE.DEFAULT || seclectionMode == SELCTION_MODE.FUSTUM) {
+      isStartDrawFrustum = false
+      onChangeMode(SELCTION_MODE.DEFAULT, null)
+      hidePivotPoint()
+    }
     if(event.target && event.target['tagName'] !== "CANVAS") return
+  }
+
+  window.onkeyup = (event) => {
+    if(event.key === "Escape") {
+      isStartDrawFrustum = false
+      onChangeMode(SELCTION_MODE.DEFAULT, null)
+      hideFrustumRectangle()
+      hidePivotPoint()
+    }
   }
 
   const disableControl = () => {
@@ -180,11 +207,16 @@ async function main() {
   }
 
   const fustumModeButton = document.getElementById("frustumMode") as HTMLButtonElement;
+  const cloudMarkupButton = document.getElementById("cloudMarkup") as HTMLButtonElement;
 
-  const allSelectionModeButtons = [fustumModeButton]
+  const allSelectionModeButtons = [fustumModeButton, cloudMarkupButton]
 
   const onChangeMode = (newMode, htmlButton) => {
     if(seclectionMode === newMode || newMode === SELCTION_MODE.DEFAULT) {
+      if(seclectionMode === SELCTION_MODE.CLOUND_MARKUP) {
+        cloundMarkupEvent.removeEvents()
+      }
+
       seclectionMode = SELCTION_MODE.DEFAULT
       allSelectionModeButtons.forEach(button => {
         button.classList.remove("active")
@@ -194,13 +226,20 @@ async function main() {
     } else {
       seclectionMode = newMode
       htmlButton?.classList.add("active")
-      disableControl()
+      if(newMode == SELCTION_MODE.FUSTUM) {
+        disableControl()
+      } else if(newMode == SELCTION_MODE.CLOUND_MARKUP) {
+        cloundMarkupEvent.addEvents()
+      }
     }
   }
 
   //#region Html event
   fustumModeButton.onclick = () => {
     onChangeMode(SELCTION_MODE.FUSTUM, fustumModeButton)
+  }
+  cloudMarkupButton.onclick = () => {
+    onChangeMode(SELCTION_MODE.CLOUND_MARKUP, cloudMarkupButton)
   }
   //#endregion
 }
