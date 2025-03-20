@@ -1,7 +1,8 @@
 import * as THREE from "three";
+import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import * as OBC from "@thatopen-platform/components-beta";
+import * as OBF from "@thatopen-platform/components-front-beta";
 import Stats from "stats.js";
-import { cameraUpdate } from "./libs/camera-controls.helper";
 
 async function main() {
   // Set up scene
@@ -9,7 +10,6 @@ async function main() {
   const components = new OBC.Components();
   const worlds = components.get(OBC.Worlds);
   const container = document.getElementById("container") as HTMLDivElement;
-  const pivotPoint = document.getElementById("pivot-point") as HTMLDivElement;
 
   const world = worlds.create<
     OBC.SimpleScene,
@@ -18,7 +18,7 @@ async function main() {
   >();
 
   world.scene = new OBC.SimpleScene(components);
-  world.renderer = new OBC.SimpleRenderer(components, container);
+  world.renderer = new OBF.RendererWith2D(components, container);
   world.camera = new OBC.SimpleCamera(components);
 
   components.init();
@@ -29,8 +29,6 @@ async function main() {
   world.scene.three.add(new THREE.AxesHelper());
 
   world.camera.three.far = 10000;
-  world.camera.three.near = 0.1;
-  world.camera.three.frustumCulled = false;
 
   // Get fragments model
 
@@ -84,44 +82,19 @@ async function main() {
   const casters = components.get(OBC.Raycasters);
   const caster = casters.get(world)
 
-  const hidePivotPoint = () => {
-    pivotPoint.style.display = "none";
-  }
-
-  const showPivotPoint = (x: number, y: number) => {
-    pivotPoint.style.display = "block";
-    pivotPoint.style.left = x + "px";
-    pivotPoint.style.top = y + "px";
-  }
-
-  world.camera.controls['update'] = cameraUpdate
-  world.camera.controls.minDistance = 0.01
-
   // Create plane on click
-  container.onpointerdown = async (event) => {
+  container.ondblclick = async () => {
     const result = await caster.castRay();
-    hidePivotPoint()
-    if(result && result.point && event.button === 0) {
-      const widthHalf = container.clientWidth / 2;
-      const heightHalf = container.clientHeight / 2;
-
-      world.camera.controls.setOrbitPoint(result.point.x, result.point.y, result.point.z);
-      
-      const projectPoint = result.point.clone().project(world.camera.three);
-      
-      let x = projectPoint.x * widthHalf + widthHalf
-      let y = - (projectPoint.y * heightHalf) + heightHalf
-      showPivotPoint(x, y)
-    }
+    console.log(result)
   };
 
-  container.onpointerup = () => {
-    hidePivotPoint()
-  }
+  // Create label
 
-  container.onwheel = () => {
-    hidePivotPoint()
-  }
+  const div = document.createElement("div");
+  div.innerText = "HELLO LABEL";
+  const exampleLabel = new CSS2DObject( div );
+  world.scene.three.add( exampleLabel );
+  exampleLabel.layers.set( 0 );
 }
 
 main();
