@@ -106,6 +106,7 @@ async function main() {
   const cloundMarkupEvent = new CloundMarkupEvent(world, container, caster);
   const arrowMarkupEvent = new ArrowMarkupEvent(world, container, caster);
   const lineMarkupEvent = new LineMarkupEvent(world, container, caster);
+  const drawMarkupEvent = new DrawMarkupEvent(world, container, caster);
 
   const hidePivotPoint = () => {
     isPickedPivotPoint = false
@@ -241,6 +242,8 @@ async function main() {
       arrowMarkupEvent.removeEvents()
     } else if(seclectionMode === SELCTION_MODE.LINE_MARKUP) {
       lineMarkupEvent.removeEvents()
+    } else if(seclectionMode === SELCTION_MODE.DRAW_MARKUP) {
+      drawMarkupEvent.removeEvents()
     }
     if(seclectionMode === newMode || newMode === SELCTION_MODE.DEFAULT) {
       seclectionMode = SELCTION_MODE.DEFAULT
@@ -263,6 +266,8 @@ async function main() {
         arrowMarkupEvent.addEvents()
       } else if(newMode == SELCTION_MODE.LINE_MARKUP) {
         lineMarkupEvent.addEvents()
+      } else if(newMode == SELCTION_MODE.DRAW_MARKUP) {
+        drawMarkupEvent.addEvents()
       }
     }
   }
