@@ -95,14 +95,14 @@ export default class CloundMarkupEvent {
     initCloudMarkupHelper() {
         const geometry = new THREE.RingGeometry(4, 5, 32)
         geometry.rotateX(-Math.PI / 2)
-        const material = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.4, depthTest: false, depthWrite: false })
+        const material = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.4, depthTest: false, depthWrite: false, side: THREE.DoubleSide })
         const ring = new THREE.Mesh(geometry, material)
         ring.renderOrder = HELPER_RENDER_ORDER
         this.cloudMarkupHelper.add(ring)
 
         const circleGeometry = new THREE.CircleGeometry(1, 32)
         circleGeometry.rotateX(-Math.PI / 2)
-        const circleMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff, depthTest: false, depthWrite: false })
+        const circleMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff, depthTest: false, depthWrite: false, side: THREE.DoubleSide })
         const circle = new THREE.Mesh(circleGeometry, circleMaterial)
         circle.renderOrder = HELPER_RENDER_ORDER
         this.cloudMarkupHelper.add(circle)

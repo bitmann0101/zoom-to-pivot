@@ -3,11 +3,17 @@ import * as OBC from "@thatopen-platform/components-beta";
 import Stats from "stats.js";
 import { cameraUpdate } from "./libs/camera-controls.helper";
 import CloundMarkupEvent from "./events/cloundMarkup.event";
+import ArrowMarkupEvent from "./events/arrowMarkup.event";
+import LineMarkupEvent from "./events/lineMarkup.event";
+import DrawMarkupEvent from "./events/drawMarkup.event";
 
 const SELCTION_MODE = {
   DEFAULT: "DEFAULT",
   FUSTUM: "FUSTUM",
-  CLOUND_MARKUP: "CLOUND_MARKUP"
+  CLOUND_MARKUP: "CLOUND_MARKUP",
+  ARROW_MARKUP: "ARROW_MARKUP",
+  LINE_MARKUP: "LINE_MARKUP",
+  DRAW_MARKUP: "DRAW_MARKUP"
 }
 
 let seclectionMode = SELCTION_MODE.DEFAULT
@@ -98,6 +104,7 @@ async function main() {
   const caster = casters.get(world)
 
   const cloundMarkupEvent = new CloundMarkupEvent(world, container, caster);
+  const arrowMarkupEvent = new ArrowMarkupEvent(world, container, caster);
 
   const hidePivotPoint = () => {
     isPickedPivotPoint = false
@@ -139,7 +146,12 @@ async function main() {
   container.onpointerdown = async (event) => {
   isPickedPivotPoint = false
     if(event.target && event.target['tagName'] !== "CANVAS") return
-    if(seclectionMode == SELCTION_MODE.DEFAULT || seclectionMode == SELCTION_MODE.CLOUND_MARKUP) {
+    if(
+      seclectionMode == SELCTION_MODE.DEFAULT 
+      || seclectionMode == SELCTION_MODE.CLOUND_MARKUP 
+      || seclectionMode == SELCTION_MODE.ARROW_MARKUP
+      || seclectionMode == SELCTION_MODE.LINE_MARKUP
+    ) {
       const result = await caster.castRay();
       hidePivotPoint()
       if(result && result.point && event.button === 0) {
@@ -162,7 +174,14 @@ async function main() {
   };
 
   container.onpointermove = (event) => {
-    if(isPickedPivotPoint && (seclectionMode == SELCTION_MODE.DEFAULT || seclectionMode == SELCTION_MODE.CLOUND_MARKUP)) {
+    if(isPickedPivotPoint 
+      && (
+        seclectionMode == SELCTION_MODE.DEFAULT 
+        || seclectionMode == SELCTION_MODE.CLOUND_MARKUP 
+        || seclectionMode == SELCTION_MODE.ARROW_MARKUP
+        || seclectionMode == SELCTION_MODE.LINE_MARKUP
+      )
+    ) {
       showPivotPoint()
     }
     if(seclectionMode == SELCTION_MODE.FUSTUM && isStartDrawFrustum) {
@@ -208,15 +227,19 @@ async function main() {
 
   const fustumModeButton = document.getElementById("frustumMode") as HTMLButtonElement;
   const cloudMarkupButton = document.getElementById("cloudMarkup") as HTMLButtonElement;
+  const arrowMarkupButton = document.getElementById("arrowMarkup") as HTMLButtonElement;
+  const lineMarkupButton = document.getElementById("lineMarkup") as HTMLButtonElement;
+  const drawMarkupButton = document.getElementById("drawMarkup") as HTMLButtonElement;
 
-  const allSelectionModeButtons = [fustumModeButton, cloudMarkupButton]
+  const allSelectionModeButtons = [fustumModeButton, cloudMarkupButton, arrowMarkupButton, lineMarkupButton, drawMarkupButton]
 
   const onChangeMode = (newMode, htmlButton) => {
+    if(seclectionMode === SELCTION_MODE.CLOUND_MARKUP) {
+      cloundMarkupEvent.removeEvents()
+    } else if(seclectionMode === SELCTION_MODE.ARROW_MARKUP) {
+      arrowMarkupEvent.removeEvents()
+    }
     if(seclectionMode === newMode || newMode === SELCTION_MODE.DEFAULT) {
-      if(seclectionMode === SELCTION_MODE.CLOUND_MARKUP) {
-        cloundMarkupEvent.removeEvents()
-      }
-
       seclectionMode = SELCTION_MODE.DEFAULT
       allSelectionModeButtons.forEach(button => {
         button.classList.remove("active")
@@ -225,11 +248,16 @@ async function main() {
       hideFrustumRectangle()
     } else {
       seclectionMode = newMode
+      allSelectionModeButtons.forEach(button => {
+        button.classList.remove("active")
+      })
       htmlButton?.classList.add("active")
       if(newMode == SELCTION_MODE.FUSTUM) {
         disableControl()
       } else if(newMode == SELCTION_MODE.CLOUND_MARKUP) {
         cloundMarkupEvent.addEvents()
+      } else if(newMode == SELCTION_MODE.ARROW_MARKUP) {
+        arrowMarkupEvent.addEvents()
       }
     }
   }
@@ -240,6 +268,15 @@ async function main() {
   }
   cloudMarkupButton.onclick = () => {
     onChangeMode(SELCTION_MODE.CLOUND_MARKUP, cloudMarkupButton)
+  }
+  arrowMarkupButton.onclick = () => {
+    onChangeMode(SELCTION_MODE.ARROW_MARKUP, arrowMarkupButton)
+  }
+  lineMarkupButton.onclick = () => {
+    onChangeMode(SELCTION_MODE.LINE_MARKUP, lineMarkupButton)
+  }
+  drawMarkupButton.onclick = () => {
+    onChangeMode(SELCTION_MODE.DRAW_MARKUP, drawMarkupButton)
   }
   //#endregion
 }
