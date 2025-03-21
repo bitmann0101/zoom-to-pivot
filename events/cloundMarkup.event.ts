@@ -2,7 +2,8 @@ import * as OBC from "@thatopen-platform/components-beta";
 import * as THREE from "three";
 import { HELPER_RENDER_ORDER, MARKUP_RENDER_ORDER } from "../constants";
 import { v4 } from "uuid";
-import { GLTFLoader } from "three/examples/jsm/Addons.js";
+import { exampleCloudPoints } from "../data";
+import _ from "lodash";
 
 interface CloudMarkup {
     position: THREE.Vector3
@@ -36,6 +37,11 @@ export default class CloundMarkupEvent {
     }
 
     _cloudMarkups: CloudMarkup[] = []
+    isActive = false
+
+    // Define points for the cloud outline
+    cloudPoints = exampleCloudPoints.map((point) => new THREE.Vector3(point[0] - 2.6705188621183225, point[1] - 2.8695826964058515, 0).applyAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI));
+    defaultCloudObject: THREE.Line = this.createCloudOutline(this.cloudPoints)
 
     public get cloudMarkups() {
         return this._cloudMarkups
@@ -58,11 +64,6 @@ export default class CloundMarkupEvent {
         this._handleMouseWheel = this.handleMouseWheel.bind(this)
         this._handleControlUpdateEnd = this.onControlUpdateEnd.bind(this)
 
-        // new GLTFLoader().load("/cloud.glb", (gltf) => {
-        //     const model = gltf.scene
-        //     console.log('model', model)
-        // })
-
         this.init()
     }
 
@@ -72,6 +73,23 @@ export default class CloundMarkupEvent {
         this.cloudMarkupContainer.add(this.cloudMarkupGroup)
 
         this.world.scene!.three.add(this.cloudMarkupContainer)
+    }
+
+    createCloudOutline(points: THREE.Vector3[]) {
+        // Generate points along the curve
+        const curvePoints = points; // Adjust the number of points for smoothness
+    
+        // Create a geometry from the curve points
+        const geometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
+    
+        // Create a material for the curve
+        const material = new THREE.LineBasicMaterial({ color: 0xED44C6, linewidth: 5, depthTest: false, depthWrite: false });
+    
+        // Create a line object from the geometry and material
+        const line = new THREE.Line(geometry, material);
+    
+        // Add the line to the cloud markup group
+       return line
     }
 
     initCloudMarkupHelper() {
@@ -93,6 +111,7 @@ export default class CloundMarkupEvent {
     }
 
     addEvents() {
+        this.isActive = true
         this.container.addEventListener("mousedown", this._handleMouseDown)
         this.container.addEventListener("mousemove", this._handleMouseMove)
         this.container.addEventListener("mouseup", this._handleMouseUp)
@@ -101,6 +120,7 @@ export default class CloundMarkupEvent {
     }
 
     removeEvents() {
+        this.isActive = false
         this.container.removeEventListener("mousedown", this._handleMouseDown)
         this.container.removeEventListener("mousemove", this._handleMouseMove)
         this.container.removeEventListener("mouseup", this._handleMouseUp)
@@ -126,7 +146,7 @@ export default class CloundMarkupEvent {
     }
     updateCloudMarkupHelper(result) {
         if(result && result.point) {
-            this.cloudMarkupHelper.visible = true
+            this.cloudMarkupHelper.visible = this.isActive
             this.cloudMarkupHelper.position.copy(result.point)
 
             // Align the helper to the normal
@@ -182,31 +202,30 @@ export default class CloundMarkupEvent {
     renderCloudMarkups() {
         this.cloudMarkupGroup.clear()
 
-        console.log(this.cloudMarkups)
-
         // Iterate over the cloud markups and create a visual representation for each
         this.cloudMarkups.forEach((markup) => {
-            // Create a sphere to represent the cloud point
-            const geometry = new THREE.RingGeometry(4, 5, 32)
-            geometry.rotateX(-Math.PI / 2)
-            const material = markup.selected
-                ? this.highlightCloundMarkupMaterial
-                : this.defaultCloundMarkupMaterial;
-            const sphere = new THREE.Mesh(geometry, material);
-            sphere.renderOrder = MARKUP_RENDER_ORDER;
+            const cloud = this.defaultCloudObject.clone()
+            cloud.renderOrder = MARKUP_RENDER_ORDER;
 
-            // Position the sphere at the markup's position
-            sphere.position.copy(markup.position);
-            sphere.scale.set(markup.scale, markup.scale, markup.scale);
-
-            // Align the sphere to the normal
+            // Align the cloud to the normal
             const normal = markup.normal.clone().normalize();
             const up = new THREE.Vector3(0, 1, 0);
-            const quaternion = new THREE.Quaternion().setFromUnitVectors(up, normal);
-            sphere.quaternion.copy(quaternion);
 
-            // Add the sphere to the cloud markup group
-            this.cloudMarkupGroup.add(sphere);
+            const position = new THREE.Vector3(markup.position.x, markup.position.y, markup.position.z);
+
+            if(normal.angleTo(up) < 0.05) {
+                up.set(0, 0, -1);
+            }
+            const matrix = new THREE.Matrix4().lookAt(position.clone(), position.clone().addScaledVector(normal, 1), up);
+            const quaternion = new THREE.Quaternion().setFromRotationMatrix(matrix);
+            cloud.applyQuaternion(quaternion);
+
+            // Position the cloud at the markup's position
+            cloud.position.copy(position.clone());
+            cloud.scale.set(markup.scale, markup.scale, markup.scale);
+
+            // Add the cloud to the cloud markup group
+            this.cloudMarkupGroup.add(cloud);
         });
     }
 }
