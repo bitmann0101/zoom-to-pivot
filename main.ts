@@ -1,11 +1,14 @@
 import * as THREE from "three";
 import * as OBC from "@thatopen-platform/components-beta";
+import * as OBF from "@thatopen-platform/components-front-beta";
 import Stats from "stats.js";
 import { cameraUpdate } from "./libs/camera-controls.helper";
 import CloundMarkupEvent from "./events/cloundMarkup.event";
 import ArrowMarkupEvent from "./events/arrowMarkup.event";
 import LineMarkupEvent from "./events/lineMarkup.event";
 import DrawMarkupEvent from "./events/drawMarkup.event";
+import { CSS2DObject } from "three/examples/jsm/Addons.js";
+import TextMarkupEvent from "./events/textMarkup.event";
 
 const SELCTION_MODE = {
   DEFAULT: "DEFAULT",
@@ -13,7 +16,8 @@ const SELCTION_MODE = {
   CLOUND_MARKUP: "CLOUND_MARKUP",
   ARROW_MARKUP: "ARROW_MARKUP",
   LINE_MARKUP: "LINE_MARKUP",
-  DRAW_MARKUP: "DRAW_MARKUP"
+  DRAW_MARKUP: "DRAW_MARKUP",
+  TEXT_MARKUP: "TEXT_MARKUP",
 }
 
 let seclectionMode = SELCTION_MODE.DEFAULT
@@ -37,7 +41,7 @@ async function main() {
   >();
 
   world.scene = new OBC.SimpleScene(components);
-  world.renderer = new OBC.SimpleRenderer(components, container);
+  world.renderer = new OBF.RendererWith2D(components, container);
   world.camera = new OBC.SimpleCamera(components);
 
   components.init();
@@ -107,6 +111,7 @@ async function main() {
   const arrowMarkupEvent = new ArrowMarkupEvent(world, container, caster);
   const lineMarkupEvent = new LineMarkupEvent(world, container, caster);
   const drawMarkupEvent = new DrawMarkupEvent(world, container, caster);
+  const textMarkupEvent = new TextMarkupEvent(world, container, caster);
 
   const hidePivotPoint = () => {
     isPickedPivotPoint = false
@@ -232,8 +237,9 @@ async function main() {
   const arrowMarkupButton = document.getElementById("arrowMarkup") as HTMLButtonElement;
   const lineMarkupButton = document.getElementById("lineMarkup") as HTMLButtonElement;
   const drawMarkupButton = document.getElementById("drawMarkup") as HTMLButtonElement;
+  const textMarkupButton = document.getElementById("textMarkup") as HTMLButtonElement;
 
-  const allSelectionModeButtons = [fustumModeButton, cloudMarkupButton, arrowMarkupButton, lineMarkupButton, drawMarkupButton]
+  const allSelectionModeButtons = [fustumModeButton, cloudMarkupButton, arrowMarkupButton, lineMarkupButton, drawMarkupButton, textMarkupButton]
 
   const onChangeMode = (newMode, htmlButton) => {
     if(seclectionMode === SELCTION_MODE.CLOUND_MARKUP) {
@@ -244,6 +250,8 @@ async function main() {
       lineMarkupEvent.removeEvents()
     } else if(seclectionMode === SELCTION_MODE.DRAW_MARKUP) {
       drawMarkupEvent.removeEvents()
+    } else if(seclectionMode === SELCTION_MODE.TEXT_MARKUP) {
+      textMarkupEvent.removeEvents()
     }
     if(seclectionMode === newMode || newMode === SELCTION_MODE.DEFAULT) {
       seclectionMode = SELCTION_MODE.DEFAULT
@@ -268,8 +276,15 @@ async function main() {
         lineMarkupEvent.addEvents()
       } else if(newMode == SELCTION_MODE.DRAW_MARKUP) {
         drawMarkupEvent.addEvents()
+      } else if(newMode == SELCTION_MODE.TEXT_MARKUP) {
+        textMarkupEvent.addEvents()
       }
     }
+  }
+
+  // Add event
+  textMarkupEvent.onCancelEvent = () => {
+    onChangeMode(SELCTION_MODE.DEFAULT, null)
   }
 
   //#region Html event
@@ -287,6 +302,9 @@ async function main() {
   }
   drawMarkupButton.onclick = () => {
     onChangeMode(SELCTION_MODE.DRAW_MARKUP, drawMarkupButton)
+  }
+  textMarkupButton.onclick = () => {
+    onChangeMode(SELCTION_MODE.TEXT_MARKUP, textMarkupButton)
   }
   //#endregion
 }

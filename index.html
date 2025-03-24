@@ -60,6 +60,25 @@
             display: none;
             z-index: 2;
         }
+        .text-markup_text{
+            border-bottom: 3px solid #CC00CC;
+            position: relative;
+            transform: translateX(50%) translateY(-50%);
+            pointer-events: all;
+            color: #CC00CC;
+            font-size: 20px;
+            text-shadow: 0 0 2px white;
+        }
+        .text-markup_input{
+            border: none;
+            outline: none;
+            color: #CC00CC;
+            border-bottom: 3px solid #CC00CC;
+            position: relative;
+            transform: translateX(50%) translateY(-50%);
+            pointer-events: all;
+            font-size: 20px;
+        }
     </style>
 </head>
 <body>
@@ -71,6 +90,7 @@
             <button class="btn-select-mode" id="arrowMarkup">Arrow Markup</button>
             <button class="btn-select-mode" id="lineMarkup">Line Markup</button>
             <button class="btn-select-mode" id="drawMarkup">Draw Markup</button>
+            <button class="btn-select-mode" id="textMarkup">Text Markup</button>
         </div>
         <div class="frustum-rectangle" id="frustumRectangle"></div>
     </div>
