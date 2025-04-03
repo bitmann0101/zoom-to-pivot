@@ -69,7 +69,7 @@ export default class TextMarkupEvent {
     cylinderGeometry = this.createCylinderGeometry()
     cylinderMaterial = new THREE.MeshBasicMaterial({ color: 0x6528d7, depthTest: false, depthWrite: false, side: THREE.DoubleSide })
 
-    cylinderPickupLineMesh = new THREE.Mesh(this.cylinderGeometry, this.cylinderMaterial)
+    cylinderPickupLineMesh = this.createPickupLineMesh()
     textMarkupPickupTextHelper: CSS2DObject;
 
     onCancelEvent: () => void = () => {}
@@ -86,6 +86,20 @@ export default class TextMarkupEvent {
         this._handleControlUpdateEnd = this.onControlUpdateEnd.bind(this)
 
         this.init()
+    }
+
+    createPickupLineMesh() {
+        // Create a geometry from the curve points
+        const geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 1)]);
+    
+        // Create a material for the curve
+        const material = new THREE.LineBasicMaterial({ color: 0x6528d7, linewidth: 5, depthTest: false, depthWrite: false });
+    
+        // Create a line object from the geometry and material
+        const line = new THREE.Line(geometry, material);
+    
+        // Add the line to the cloud markup group
+        return line
     }
 
     init() {
@@ -198,10 +212,10 @@ export default class TextMarkupEvent {
         if(this.helperLineInfo.start && this.helperLineInfo.end) {
             const direction = this.helperLineInfo.end.clone().sub(this.helperLineInfo.start)
             const length = direction.length()
-            if(length - 1 > 0) {
-                const scale = new THREE.Vector3(1, 1, (length - 1))
+            if(length > 0) {
+                const scale = new THREE.Vector3(1, 1, length)
                 this.cylinderPickupLineMesh.scale.copy(scale)
-                this.cylinderPickupLineMesh.position.set(0, 0, 1)
+                this.cylinderPickupLineMesh.position.set(0, 0, 0)
                 this.cylinderPickupLineMesh.visible = true
             } else {
                 this.cylinderPickupLineMesh.visible = false
@@ -314,10 +328,10 @@ export default class TextMarkupEvent {
                 group.position.copy(textMarkup.startPoint)
                 group.lookAt(textMarkup.endPoint)
     
-                if(length - 1 > 0) {
-                    const cylinder = new THREE.Mesh(this.cylinderGeometry, this.cylinderMaterial)
-                    cylinder.scale.set(1, 1, (length - 1))
-                    cylinder.position.set(0, 0, 1)
+                if(length > 0) {
+                    const cylinder = this.createPickupLineMesh()
+                    cylinder.scale.set(1, 1, length)
+                    cylinder.position.set(0, 0, 0)
                     cylinder.renderOrder = MARKUP_RENDER_ORDER
                     group.add(cylinder)
                 }

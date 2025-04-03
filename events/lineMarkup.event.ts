@@ -56,7 +56,7 @@ export default class LineMarkupEvent {
     cylinderGeometry = this.createCylinderGeometry()
     cylinderMaterial = new THREE.MeshBasicMaterial({ color: 0x6528d7, depthTest: false, depthWrite: false, side: THREE.DoubleSide })
 
-    cylinderPickupLineMesh = new THREE.Mesh(this.cylinderGeometry, this.cylinderMaterial)
+    cylinderPickupLineMesh = this.createPickupLineMesh()
 
     constructor(world: OBC.SimpleWorld, container: HTMLDivElement, caster: OBC.SimpleRaycaster) {
         this.container = container
@@ -84,6 +84,20 @@ export default class LineMarkupEvent {
         this.lineMarkupContainer.add(this.lineMarkupGroup)
 
         this.world.scene!.three.add(this.lineMarkupContainer)
+    }
+
+    createPickupLineMesh() {
+        // Create a geometry from the curve points
+        const geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 1)]);
+    
+        // Create a material for the curve
+        const material = new THREE.LineBasicMaterial({ color: 0x6528d7, linewidth: 5, depthTest: false, depthWrite: false });
+    
+        // Create a line object from the geometry and material
+        const line = new THREE.Line(geometry, material);
+    
+        // Add the line to the cloud markup group
+        return line
     }
 
     createCylinderGeometry() {
@@ -249,7 +263,7 @@ export default class LineMarkupEvent {
             group.lookAt(lineMarkup.endPoint)
 
             if(length > 0) {
-                const cylinder = new THREE.Mesh(this.cylinderGeometry, this.cylinderMaterial)
+                const cylinder = this.createPickupLineMesh()
                 cylinder.scale.set(1, 1, length)
                 cylinder.position.set(0, 0, 0)
                 cylinder.renderOrder = MARKUP_RENDER_ORDER
