@@ -39,7 +39,7 @@ export default class ArrowMarkupEvent {
         end: null,
     }
     helperPlane: THREE.Plane | null = null
-    raycater: THREE.Raycaster = new THREE.Raycaster()
+    raycaster: THREE.Raycaster = new THREE.Raycaster()
 
     mouse: THREE.Vector2 = new THREE.Vector2()
     
@@ -56,7 +56,7 @@ export default class ArrowMarkupEvent {
 
     coneGeometry = this.createConeGeometry(); 
     cylinderGeometry = this.createCylinderGeometry()
-    cylinderMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, depthTest: false, depthWrite: false, side: THREE.DoubleSide })
+    cylinderMaterial = new THREE.MeshBasicMaterial({ color: 0x6528d7, depthTest: false, depthWrite: false, side: THREE.DoubleSide })
 
     cylinderPickupLineMesh = new THREE.Mesh(this.cylinderGeometry, this.cylinderMaterial)
     conePickupMesh = new THREE.Mesh(this.coneGeometry, this.cylinderMaterial)
@@ -199,9 +199,9 @@ export default class ArrowMarkupEvent {
         if(this.helperLineInfo.start !== null && this.helperPlane){
             this.mouse.x = (event.clientX / this.container.clientWidth) * 2 - 1;
             this.mouse.y = -(event.clientY / this.container.clientHeight) * 2 + 1;
-            this.raycater.setFromCamera(this.mouse, this.world.camera.three)
+            this.raycaster.setFromCamera(this.mouse, this.world.camera.three)
             const intersectPoint = new THREE.Vector3()
-            this.raycater.ray.intersectPlane(this.helperPlane, intersectPoint)
+            this.raycaster.ray.intersectPlane(this.helperPlane, intersectPoint)
             if(intersectPoint) {
                 this.helperLineInfo.end = intersectPoint.clone()
             }
@@ -235,9 +235,9 @@ export default class ArrowMarkupEvent {
             } else if(this.helperLineInfo.start !== null && this.helperPlane) {
                 this.mouse.x = (event.clientX / this.container.clientWidth) * 2 - 1;
                 this.mouse.y = -(event.clientY / this.container.clientHeight) * 2 + 1;
-                this.raycater.setFromCamera(this.mouse, this.world.camera.three)
+                this.raycaster.setFromCamera(this.mouse, this.world.camera.three)
                 const intersectPoint = new THREE.Vector3()
-                this.raycater.ray.intersectPlane(this.helperPlane, intersectPoint)
+                this.raycaster.ray.intersectPlane(this.helperPlane, intersectPoint)
                 if(intersectPoint) {
                     this.helperLineInfo.end = intersectPoint.clone()
                 }

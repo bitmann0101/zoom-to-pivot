@@ -34,7 +34,7 @@ export default class DrawMarkupEvent {
     mouse: THREE.Vector2 = new THREE.Vector2()
     helperPlane: THREE.Plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0)
 
-    lineMaterial = new THREE.LineBasicMaterial({color: 0xff0000, depthTest: false, depthWrite: false, side: THREE.DoubleSide})
+    lineMaterial = new THREE.LineBasicMaterial({color: 0x6528d7, depthTest: false, depthWrite: false, side: THREE.DoubleSide})
     
     _drawMarkups: DrawMarkup[] = []
     public get drawMarkups() {

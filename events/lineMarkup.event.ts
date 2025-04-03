@@ -54,7 +54,7 @@ export default class LineMarkupEvent {
     }
 
     cylinderGeometry = this.createCylinderGeometry()
-    cylinderMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, depthTest: false, depthWrite: false, side: THREE.DoubleSide })
+    cylinderMaterial = new THREE.MeshBasicMaterial({ color: 0x6528d7, depthTest: false, depthWrite: false, side: THREE.DoubleSide })
 
     cylinderPickupLineMesh = new THREE.Mesh(this.cylinderGeometry, this.cylinderMaterial)
 
@@ -170,10 +170,10 @@ export default class LineMarkupEvent {
         if(this.helperLineInfo.start && this.helperLineInfo.end) {
             const direction = this.helperLineInfo.end.clone().sub(this.helperLineInfo.start)
             const length = direction.length()
-            if(length - 1 > 0) {
-                const scale = new THREE.Vector3(1, 1, (length - 1))
+            if(length > 0) {
+                const scale = new THREE.Vector3(1, 1, length)
                 this.cylinderPickupLineMesh.scale.copy(scale)
-                this.cylinderPickupLineMesh.position.set(0, 0, 1)
+                this.cylinderPickupLineMesh.position.set(0, 0, 0)
                 this.cylinderPickupLineMesh.visible = true
             } else {
                 this.cylinderPickupLineMesh.visible = false
@@ -248,10 +248,10 @@ export default class LineMarkupEvent {
             group.position.copy(lineMarkup.startPoint)
             group.lookAt(lineMarkup.endPoint)
 
-            if(length - 1 > 0) {
+            if(length > 0) {
                 const cylinder = new THREE.Mesh(this.cylinderGeometry, this.cylinderMaterial)
-                cylinder.scale.set(1, 1, (length - 1))
-                cylinder.position.set(0, 0, 1)
+                cylinder.scale.set(1, 1, length)
+                cylinder.position.set(0, 0, 0)
                 cylinder.renderOrder = MARKUP_RENDER_ORDER
                 group.add(cylinder)
             }

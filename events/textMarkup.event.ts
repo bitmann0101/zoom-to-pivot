@@ -67,7 +67,7 @@ export default class TextMarkupEvent {
     }
 
     cylinderGeometry = this.createCylinderGeometry()
-    cylinderMaterial = new THREE.MeshBasicMaterial({ color: 0xCC00CC, depthTest: false, depthWrite: false, side: THREE.DoubleSide })
+    cylinderMaterial = new THREE.MeshBasicMaterial({ color: 0x6528d7, depthTest: false, depthWrite: false, side: THREE.DoubleSide })
 
     cylinderPickupLineMesh = new THREE.Mesh(this.cylinderGeometry, this.cylinderMaterial)
     textMarkupPickupTextHelper: CSS2DObject;

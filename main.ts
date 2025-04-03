@@ -3,22 +3,13 @@ import * as OBC from "@thatopen-platform/components-beta";
 import * as OBF from "@thatopen-platform/components-front-beta";
 import Stats from "stats.js";
 import { cameraUpdate } from "./libs/camera-controls.helper";
-import CloundMarkupEvent from "./events/cloundMarkup.event";
+import CloudMarkupEvent from "./events/cloudMarkup.event";
 import ArrowMarkupEvent from "./events/arrowMarkup.event";
 import LineMarkupEvent from "./events/lineMarkup.event";
 import DrawMarkupEvent from "./events/drawMarkup.event";
 import { CSS2DObject } from "three/examples/jsm/Addons.js";
 import TextMarkupEvent from "./events/textMarkup.event";
-
-const SELCTION_MODE = {
-  DEFAULT: "DEFAULT",
-  FUSTUM: "FUSTUM",
-  CLOUND_MARKUP: "CLOUND_MARKUP",
-  ARROW_MARKUP: "ARROW_MARKUP",
-  LINE_MARKUP: "LINE_MARKUP",
-  DRAW_MARKUP: "DRAW_MARKUP",
-  TEXT_MARKUP: "TEXT_MARKUP",
-}
+import { SELCTION_MODE } from "./constant";
 
 let seclectionMode = SELCTION_MODE.DEFAULT
 let isPickedPivotPoint = false
@@ -33,6 +24,8 @@ async function main() {
   const worlds = components.get(OBC.Worlds);
   const container = document.getElementById("container") as HTMLDivElement;
   const pivotPoint = document.getElementById("pivot-point") as HTMLDivElement;
+
+  const raycaster = new THREE.Raycaster();
 
   const world = worlds.create<
     OBC.SimpleScene,
@@ -107,7 +100,7 @@ async function main() {
   const casters = components.get(OBC.Raycasters);
   const caster = casters.get(world)
 
-  const cloundMarkupEvent = new CloundMarkupEvent(world, container, caster);
+  const cloudMarkupEvent = new CloudMarkupEvent(world, container, caster);
   const arrowMarkupEvent = new ArrowMarkupEvent(world, container, caster);
   const lineMarkupEvent = new LineMarkupEvent(world, container, caster);
   const drawMarkupEvent = new DrawMarkupEvent(world, container, caster);
@@ -159,7 +152,7 @@ async function main() {
       || seclectionMode == SELCTION_MODE.ARROW_MARKUP
       || seclectionMode == SELCTION_MODE.LINE_MARKUP
     ) {
-      const result = await caster.castRay();
+      const result = await caster.castRay(Array.from(world.meshes))
       hidePivotPoint()
       if(result && result.point && event.button === 0) {
         const widthHalf = container.clientWidth / 2;
@@ -173,6 +166,25 @@ async function main() {
         let y = - (projectPoint.y * heightHalf) + heightHalf
         setPivotPoint(x, y)
         isPickedPivotPoint = true
+      }
+
+      if(seclectionMode == SELCTION_MODE.DEFAULT) {
+        raycaster.setFromCamera(
+          new THREE.Vector2(
+            (event.clientX / container.clientWidth) * 2 - 1,
+            -(event.clientY / container.clientHeight) * 2 + 1
+          ),
+          world.camera.three
+        )
+        const intersections = raycaster.intersectObjects([...cloudMarkupEvent.cloudMarkupGroup.children], false)
+        const intersectMesh = intersections.find(i => i.object instanceof THREE.Mesh)
+
+        if(intersectMesh && intersectMesh?.object?.userData?.type == SELCTION_MODE.CLOUND_MARKUP) {
+          const {id} = intersectMesh.object.userData
+          cloudMarkupEvent.selectMarkupById(id)
+        } else {
+          cloudMarkupEvent.selectMarkupById(null)
+        }
       }
     } else if(seclectionMode == SELCTION_MODE.FUSTUM) {
       isStartDrawFrustum = true
@@ -243,7 +255,7 @@ async function main() {
 
   const onChangeMode = (newMode, htmlButton) => {
     if(seclectionMode === SELCTION_MODE.CLOUND_MARKUP) {
-      cloundMarkupEvent.removeEvents()
+      cloudMarkupEvent.removeEvents()
     } else if(seclectionMode === SELCTION_MODE.ARROW_MARKUP) {
       arrowMarkupEvent.removeEvents()
     } else if(seclectionMode === SELCTION_MODE.LINE_MARKUP) {
@@ -269,7 +281,7 @@ async function main() {
       if(newMode == SELCTION_MODE.FUSTUM) {
         disableControl()
       } else if(newMode == SELCTION_MODE.CLOUND_MARKUP) {
-        cloundMarkupEvent.addEvents()
+        cloudMarkupEvent.addEvents()
       } else if(newMode == SELCTION_MODE.ARROW_MARKUP) {
         arrowMarkupEvent.addEvents()
       } else if(newMode == SELCTION_MODE.LINE_MARKUP) {
